@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Volume Monitor - Angry Edition</title>
+    <title>RAUS! Ruhe Jetzt! - Volume Monitor</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial Black', Gadget, sans-serif;
             text-align: center;
-            background-color: #121212;
+            background-color: #0b0c10;
             color: #ffffff;
             padding: 50px 20px;
             margin: 0;
@@ -16,29 +16,42 @@
             transition: background-color 0.1s ease;
         }
         .container {
-            max-width: 400px;
+            max-width: 420px;
             margin: 0 auto;
-            background: #1e1e1e;
+            background: #1f2833;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border-radius: 0px; /* Sharp corners for authority */
+            border: 3px solid #66fcf1;
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.2);
             position: relative;
             z-index: 10;
         }
+        h2 {
+            color: #ff4d4d;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
         button {
-            background-color: #28a745;
-            color: white;
-            border: none;
+            background-color: #1f2833;
+            color: #66fcf1;
+            border: 2px solid #66fcf1;
             padding: 15px 30px;
             font-size: 18px;
-            border-radius: 8px;
             cursor: pointer;
             margin-top: 20px;
             font-weight: bold;
+            text-transform: uppercase;
             transition: 0.2s;
         }
+        button:hover {
+            background-color: #66fcf1;
+            color: #0b0c10;
+        }
         button.active {
-            background-color: #dc3545;
+            background-color: #ff4d4d;
+            color: white;
+            border-color: #ff0000;
+            animation: pulse 1s infinite alternate;
         }
         .slider-box {
             margin: 30px 0;
@@ -46,15 +59,16 @@
         input[type=range] {
             width: 100%;
             margin-top: 10px;
+            accent-color: #ff4d4d;
         }
         .meter {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             margin: 20px 0;
-            color: #00ffcc;
+            color: #ff4d4d;
+            text-shadow: 0 0 5px rgba(255,77,77,0.5);
         }
         
-        /* --- New Flashing Warning Styles --- */
         #flashOverlay {
             position: fixed;
             top: 0;
@@ -64,62 +78,70 @@
             background-color: #ff0000;
             z-index: 5;
             display: none;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            animation: flashAnimation 0.3s infinite alternate;
+            animation: flashAnimation 0.2s infinite alternate;
         }
         #flashText {
             color: white;
-            font-size: 10vw;
+            font-size: 8vw;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 5px;
             text-shadow: 5px 5px 0px #000;
-            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-family: Impact, sans-serif;
+            margin: 0;
+        }
+        #subFlashText {
+            color: #fff000;
+            font-size: 4vw;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-family: Impact, sans-serif;
+            margin-top: 10px;
         }
         @keyframes flashAnimation {
             from { background-color: #ff0000; }
-            to { background-color: #8b0000; }
+            to { background-color: #4a0000; }
+        }
+        @keyframes pulse {
+            from { box-shadow: 0 0 10px #ff4d4d; }
+            to { box-shadow: 0 0 25px #ff0000; }
         }
         
-        /* Shake effect for the whole screen */
         .shake {
-            animation: shakeEffect 0.15s infinite;
+            animation: shakeEffect 0.1s infinite;
         }
         @keyframes shakeEffect {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(0px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(2px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(2px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0% { transform: translate(2px, 2px) rotate(0deg); }
+            20% { transform: translate(-2px, -3px) rotate(-1deg); }
+            40% { transform: translate(-4px, 0px) rotate(1deg); }
+            60% { transform: translate(0px, 3px) rotate(0deg); }
+            80% { transform: translate(3px, -2px) rotate(1deg); }
+            100% { transform: translate(-2px, 3px) rotate(-1deg); }
         }
     </style>
 </head>
 <body>
 
-<!-- Massive red overlay that turns on when too loud -->
 <div id="flashOverlay">
-    <div id="flashText">SHUT UP!!!</div>
+    <div id="flashText">HALT! RUHE JETZT!</div>
+    <div id="subFlashText">YOU ARE ZU LOUD!!!</div>
 </div>
 
 <div class="container" id="mainContainer">
-    <h2>🔊 Volume Shusher (Angry Edition)</h2>
-    <p>Set your limit. If the room gets louder than your setting, the website will lose its mind.</p>
+    <h2>👹 ZE VOLUMEN POLIZIE</h2>
+    <p>Zis room demands absolute, total discipline! Set your legal decibel threshold below. If you violate ze rules, zere will be massive consequences!</p>
 
-    <div class="meter" id="volumeDisplay">Current Volume: --</div>
+    <div class="meter" id="volumeDisplay">Loudness level: --</div>
 
     <div class="slider-box">
-        <label id="thresholdLabel" style="font-weight: bold;">Trigger Limit: 50</label>
+        <label id="thresholdLabel" style="font-weight: bold;">Maximum Allowed Noise: 50</label>
         <input type="range" id="thresholdSlider" min="5" max="100" value="50">
     </div>
 
-    <button id="startBtn">Start Monitoring</button>
+    <button id="startBtn">ACTIVATE INSPECTION</button>
 </div>
 
 <script>
@@ -129,7 +151,7 @@
     let javascriptNode;
     let isMonitoring = false;
     let lastPlayedTime = 0;
-    const cooldown = 4000; // 4 seconds cooldown to finish yelling
+    const cooldown = 4500; 
 
     const startBtn = document.getElementById('startBtn');
     const volumeDisplay = document.getElementById('volumeDisplay');
@@ -138,8 +160,16 @@
     const flashOverlay = document.getElementById('flashOverlay');
     const body = document.body;
 
+    // Aggressive phrases spoken with English words spelled phonetically for German speech engines
+    const angryPhrases = [
+        "Halt! Shut up immediately! Zis is completely unacceptable!",
+        "Ruhe jetzt! I can hear you breathing through ze walls! Absolute silence!",
+        "Es reicht! Silence! You are violating section five of ze noise protocol!",
+        "Stopp! Verdammt noch mal! Shut your face right now!"
+    ];
+
     thresholdSlider.addEventListener('input', (e) => {
-        thresholdLabel.innerText = `Trigger Limit: ${e.target.value}`;
+        thresholdLabel.innerText = `Maximum Allowed Noise: ${e.target.value}`;
     });
 
     startBtn.addEventListener('click', async () => {
@@ -152,7 +182,7 @@
                 microphone = audioContext.createMediaStreamSource(stream);
                 javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
 
-                analyser.smoothingTimeConstant = 0.8;
+                analyser.smoothingTimeConstant = 0.7; // Faster response time
                 analyser.fftSize = 1024;
 
                 microphone.connect(analyser);
@@ -169,54 +199,58 @@
                     }
 
                     const average = Math.round(values / array.length);
-                    volumeDisplay.innerText = `Current Volume: ${average}`;
+                    volumeDisplay.innerText = `Loudness level: ${average}`;
 
                     const currentThreshold = parseInt(thresholdSlider.value);
                     const now = Date.now();
 
                     if (average > currentThreshold && (now - lastPlayedTime > cooldown)) {
                         lastPlayedTime = now;
-                        triggerAngryScream();
+                        triggerAngryGermanScream();
                     }
                 };
 
                 isMonitoring = true;
-                startBtn.innerText = "Stop Monitoring";
+                startBtn.innerText = "ABORT INSPECTION";
                 startBtn.classList.add('active');
 
             } catch (err) {
-                alert("Microphone access denied or not supported: " + err);
+                alert("ZE MICROPHONE WAS DENIED! UNACCEPTABLE! " + err);
             }
         } else {
-            if (audioContext) audioContext.close();
-            isMonitoring = false;
-            startBtn.innerText = "Start Monitoring";
-            startBtn.classList.remove('active');
-            volumeDisplay.innerText = "Current Volume: --";
-            hideThreat();
+            stopMonitoringProcess();
         }
     });
 
-    function triggerAngryScream() {
-        // 1. Show the massive flashing red screen & shake the display
+    function stopMonitoringProcess() {
+        if (audioContext) audioContext.close();
+        isMonitoring = false;
+        startBtn.innerText = "ACTIVATE INSPECTION";
+        startBtn.classList.remove('active');
+        volumeDisplay.innerText = "Loudness level: --";
+        hideThreat();
+    }
+
+    function triggerAngryGermanScream() {
         flashOverlay.style.display = 'flex';
         body.classList.add('shake');
 
-        // 2. Fire the angrier text-to-speech voice
-        const utterance = new SpeechSynthesisUtterance("SHUT UP RIGHT NOW.");
+        // Pick a random furious command
+        const randomPhrase = angryPhrases[Math.floor(Math.random() * angryPhrases.length)];
+        const utterance = new SpeechSynthesisUtterance(randomPhrase);
         
-        // Find a deeper voice if available on this system, otherwise use aggressive tuning
+        // CRITICAL STEP: Locate an actual German voice package on the host system 
         const voices = window.speechSynthesis.getVoices();
-        if(voices.length > 0) {
-            // Tries to grab a deep Google or Microsoft male/robotic voice if present
-            utterance.voice = voices.find(v => v.name.includes('Male') || v.name.includes('Google')) || voices[0];
+        const germanVoice = voices.find(v => v.lang.startsWith('de-DE'));
+        
+        if (germanVoice) {
+            utterance.voice = germanVoice;
         }
 
-        utterance.volume = 1.0;  // Max volume
-        utterance.rate = 1.6;    // Extremely fast, aggressive pace
-        utterance.pitch = 0.1;   // Maximum low/demonic/angry pitch allowed by browsers
+        utterance.volume = 1.0;  
+        utterance.rate = 1.3;    // Fast but structured command speed
+        utterance.pitch = 0.6;   // Aggressive, strict tone
 
-        // Hide the flashing screen once the robot finishes speaking
         utterance.onend = () => {
             hideThreat();
         };
@@ -229,7 +263,7 @@
         body.classList.remove('shake');
     }
 
-    // Fix for Chrome requiring a user gesture before loading system voices
+    // Pre-load system voices so the German engine is ready instantly
     window.speechSynthesis.getVoices();
 </script>
 
