@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Volume Monitor - Angry Edition</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            padding: 50px 20px;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.1s ease;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 10;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button.active {
+            background-color: #dc3545;
+        }
+        .slider-box {
+            margin: 30px 0;
+        }
+        input[type=range] {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .meter {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #00ffcc;
+        }
+        
+        /* --- New Flashing Warning Styles --- */
+        #flashOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ff0000;
+            z-index: 5;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: flashAnimation 0.3s infinite alternate;
+        }
+        #flashText {
+            color: white;
+            font-size: 10vw;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            text-shadow: 5px 5px 0px #000;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        }
+        @keyframes flashAnimation {
+            from { background-color: #ff0000; }
+            to { background-color: #8b0000; }
+        }
+        
+        /* Shake effect for the whole screen */
+        .shake {
+            animation: shakeEffect 0.15s infinite;
+        }
+        @keyframes shakeEffect {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Massive red overlay that turns on when too loud -->
+<div id="flashOverlay">
+    <div id="flashText">SHUT UP!!!</div>
+</div>
+
+<div class="container" id="mainContainer">
+    <h2>🔊 Volume Shusher (Angry Edition)</h2>
+    <p>Set your limit. If the room gets louder than your setting, the website will lose its mind.</p>
+
+    <div class="meter" id="volumeDisplay">Current Volume: --</div>
+
+    <div class="slider-box">
+        <label id="thresholdLabel" style="font-weight: bold;">Trigger Limit: 50</label>
+        <input type="range" id="thresholdSlider" min="5" max="100" value="50">
+    </div>
+
+    <button id="startBtn">Start Monitoring</button>
+</div>
+
+<script>
+    let audioContext;
+    let analyser;
+    let microphone;
+    let javascriptNode;
+    let isMonitoring = false;
+    let lastPlayedTime = 0;
+    const cooldown = 4000; // 4 seconds cooldown to finish yelling
+
+    const startBtn = document.getElementById('startBtn');
+    const volumeDisplay = document.getElementById('volumeDisplay');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdLabel = document.getElementById('thresholdLabel');
+    const flashOverlay = document.getElementById('flashOverlay');
+    const body = document.body;
+
+    thresholdSlider.addEventListener('input', (e) => {
+        thresholdLabel.innerText = `Trigger Limit: ${e.target.value}`;
+    });
+
+    startBtn.addEventListener('click', async () => {
+        if (!isMonitoring) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+                javascriptNode.onaudioprocess = () => {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    let values = 0;
+
+                    for (let i = 0; i < array.length; i++) {
+                        values += array[i];
+                    }
+
+                    const average = Math.round(values / array.length);
+                    volumeDisplay.innerText = `Current Volume: ${average}`;
+
+                    const currentThreshold = parseInt(thresholdSlider.value);
+                    const now = Date.now();
+
+                    if (average > currentThreshold && (now - lastPlayedTime > cooldown)) {
+                        lastPlayedTime = now;
+                        triggerAngryScream();
+                    }
+                };
+
+                isMonitoring = true;
+                startBtn.innerText = "Stop Monitoring";
+                startBtn.classList.add('active');
+
+            } catch (err) {
+                alert("Microphone access denied or not supported: " + err);
+            }
+        } else {
+            if (audioContext) audioContext.close();
+            isMonitoring = false;
+            startBtn.innerText = "Start Monitoring";
+            startBtn.classList.remove('active');
+            volumeDisplay.innerText = "Current Volume: --";
+            hideThreat();
+        }
+    });
+
+    function triggerAngryScream() {
+        // 1. Show the massive flashing red screen & shake the display
+        flashOverlay.style.display = 'flex';
+        body.classList.add('shake');
+
+        // 2. Fire the angrier text-to-speech voice
+        const utterance = new SpeechSynthesisUtterance("SHUT UP RIGHT NOW.");
+        
+        // Find a deeper voice if available on this system, otherwise use aggressive tuning
+        const voices = window.speechSynthesis.getVoices();
+        if(voices.length > 0) {
+            // Tries to grab a deep Google or Microsoft male/robotic voice if present
+            utterance.voice = voices.find(v => v.name.includes('Male') || v.name.includes('Google')) || voices[0];
+        }
+
+        utterance.volume = 1.0;  // Max volume
+        utterance.rate = 1.6;    // Extremely fast, aggressive pace
+        utterance.pitch = 0.1;   // Maximum low/demonic/angry pitch allowed by browsers
+
+        // Hide the flashing screen once the robot finishes speaking
+        utterance.onend = () => {
+            hideThreat();
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function hideThreat() {
+        flashOverlay.style.display = 'none';
+        body.classList.remove('shake');
+    }
+
+    // Fix for Chrome requiring a user gesture before loading system voices
+    window.speechSynthesis.getVoices();
+</script>
+
+</body>
+</html>
